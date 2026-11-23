@@ -8,10 +8,20 @@ export function findDecks(decks, query = "", audience = "", kind = "") {
       const meta = normalize([deck.title, deck.subtitle, deck.summary, deck.topic, ...deck.tags].join(" "));
       const full = meta + deck.slides.map((s) => normalize(s.text)).join(" ");
       if (!terms.every((term) => full.includes(term))) return [];
-      const matchPage = terms.length ? deck.slides.findIndex((s) => {
-        const text = normalize(s.text);
-        return terms.some((term) => text.includes(term));
-      }) : -1;
+      const phrase = normalize(query);
+      let matchPage = -1;
+      let bestScore = 0;
+      if (phrase) {
+        for (const [index, slide] of deck.slides.entries()) {
+          const text = normalize(slide.text);
+          const matches = terms.filter((term) => text.includes(term)).length;
+          const score = matches + (text.includes(phrase) ? terms.length : 0);
+          if (score > bestScore) {
+            bestScore = score;
+            matchPage = index;
+          }
+        }
+      }
       return [{ deck, matchPage }];
     });
 }
