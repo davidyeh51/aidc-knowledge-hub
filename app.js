@@ -7,7 +7,6 @@ const nav = document.querySelector("#nav");
 const loginForm = document.querySelector("#login");
 const loginInput = document.querySelector("#access-key");
 const loginMessage = document.querySelector("#login-message");
-const allowedCovers = new Set(["huawei-grid", "tatung-cube", "chief-network", "book"]);
 const state = { key: "", member: null, decks: [], query: "", audience: "", kind: "", notes: false };
 let navigation = 0;
 
@@ -28,7 +27,14 @@ const btn = (label, handler, extra = {}) => el("button", { type: "button", class
 const dateTime = (value) => new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Taipei" }).format(new Date(value));
 const kindNames = { article: "產業剪藏", book: "書籍", report: "研究報告" };
 const route = (id, page = 1) => `#deck/${id}/${page}`;
-const art = (name, cls = "") => el("img", { class: cls, src: `./assets/${allowedCovers.has(name) ? name : "book"}.svg`, alt: "", width: 640, height: 360 });
+function art(name, cls = "") {
+  const slug = typeof name === "string" && /^[a-z0-9-]{1,64}$/.test(name) ? name : "book";
+  const picture = el("img", { class: cls, src: `./assets/${slug}.svg`, alt: "", width: 640, height: 360 });
+  if (slug !== "book") {
+    picture.addEventListener("error", () => { picture.src = "./assets/book.svg"; }, { once: true });
+  }
+  return picture;
+}
 
 async function call(action, data = {}, key = state.key) {
   const response = await fetch(api, {
