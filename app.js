@@ -1,4 +1,4 @@
-import { audiences, findDecks } from "./search.js?v=2";
+import { audiences, findDecks } from "./search.js?v=3";
 
 const api = "https://cowljafosekwvxithwjd.supabase.co/functions/v1/aidc-knowledge-hub";
 const gate = document.querySelector("#gate");

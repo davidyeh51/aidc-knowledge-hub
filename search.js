@@ -15,7 +15,9 @@ export function findDecks(decks, query = "", audience = "", kind = "") {
         for (const [index, slide] of deck.slides.entries()) {
           const text = normalize(slide.text);
           const matches = terms.filter((term) => text.includes(term)).length;
-          const score = matches + (text.includes(phrase) ? terms.length : 0);
+          const title = normalize(slide.title);
+          const score = matches + (text.includes(phrase) ? terms.length : 0)
+            + (title.includes(phrase) ? terms.length : 0);
           if (score > bestScore) {
             bestScore = score;
             matchPage = index;
