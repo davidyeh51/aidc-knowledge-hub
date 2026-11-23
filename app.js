@@ -25,7 +25,7 @@ function el(tag, attributes = {}, ...children) {
 
 const btn = (label, handler, extra = {}) => el("button", { type: "button", class: "button", onclick: handler, ...extra }, label);
 const dateTime = (value) => new Intl.DateTimeFormat("zh-TW", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Taipei" }).format(new Date(value));
-const kindNames = { article: "產業剪藏", book: "書籍", report: "研究報告" };
+const kindNames = { policy: "政策法規", article: "產業剪藏", book: "書籍", report: "研究報告" };
 const route = (id, page = 1) => `#deck/${id}/${page}`;
 function art(name, cls = "") {
   const slug = typeof name === "string" && /^[a-z0-9-]{1,64}$/.test(name) ? name : "book";
@@ -95,28 +95,39 @@ setInterval(checkSession, 60_000);
 window.addEventListener("focus", checkSession);
 window.addEventListener("hashchange", render);
 
-function home() {
+const collections = {
+  policies: { kind: "policy", label: "6.X.2 政策法規", title: "AIDC 政策法規",
+    intro: "查找選址與供電、能源與建築、BOO 及資金法規。逐頁查閱官方來源與決策問題。" },
+  books: { kind: "book", label: "專題閱讀", title: "AIDC 書籍",
+    intro: "已收錄的書籍簡報可依書名、作者或主題搜尋，並在各頁回查出處。" },
+};
+
+function home(collection) {
   let results;
   const catalog = el("div", { class: "cards", id: "results" });
   const count = el("p", { class: "muted result-count", role: "status" });
   const refresh = () => {
-    const browsing = !state.query.trim() && !state.audience && !state.kind;
+    const kind = collection?.kind ?? state.kind;
+    const browsing = !state.query.trim() && !state.audience && !kind;
     const ordered = [...state.decks].sort((a, b) => b.date.localeCompare(a.date));
-    results = findDecks(ordered, state.query, state.audience, state.kind);
+    results = findDecks(ordered, state.query, state.audience, kind);
     count.textContent = `找到 ${results.length} 套簡報`;
     catalog.replaceChildren(...results.map(({ deck, matchPage }, index) => el("article", { class: browsing && index === 0 ? "card featured" : "card" },
       el("a", { href: route(deck.id, matchPage + 1 || 1), class: "card-link" },
         art(deck.cover),
         el("div", { class: "card-body" },
-          el("p", { class: "card-meta" }, `${browsing && index === 0 ? "最新上架　" : ""}${kindNames[deck.kind] || deck.kind}　${deck.date}`),
+          el("p", { class: "card-meta" }, `${kindNames[deck.kind] || deck.kind}　${deck.date}`),
           el("h3", {}, deck.title), el("p", {}, deck.summary),
           el("span", { class: "card-action" }, matchPage >= 0 ? `開啟第 ${matchPage + 1} 頁 · ${deck.slides[matchPage].title}` : "閱讀 10 分鐘簡報")
         )
       )
     )));
-    if (!results.length) catalog.append(el("p", { class: "empty" }, state.kind === "book" && !state.query ? "目前尚未收錄書籍。" : "找不到符合的簡報。可試試「虎尾」「微電網」或「變壓器」。"));
+    if (!results.length) catalog.append(el("div", { class: "empty" },
+      kind === "book" && !state.decks.some((deck) => deck.kind === "book")
+        ? el("div", { class: "book-empty" }, art("book-collection"), el("p", {}, "目前尚未收錄書籍。"))
+        : el("p", {}, "找不到符合的簡報。可試試「BOO」「PUE」或「投資抵減」。")));
   };
-  const search = el("input", { id: "query", type: "search", maxlength: 120, placeholder: "搜尋內容，例如 虎尾、租用意向、EMS", value: state.query,
+  const search = el("input", { id: "query", type: "search", maxlength: 120, placeholder: "例如 BOO、PUE、投資抵減", value: state.query,
     oninput: (e) => { state.query = e.target.value; refresh(); } });
   const select = (id, selected, labels, all, setter) => {
     const node = el("select", { id, onchange: (e) => { setter(e.target.value); refresh(); } },
@@ -126,12 +137,18 @@ function home() {
     return node;
   };
   screen.replaceChildren(
-    el("div", { class: "page-heading" }, el("p", { class: "eyebrow" }, "市場與專案研究"), el("h1", { tabindex: "-1" }, "AIDC 資料館"),
-      el("p", { class: "intro" }, "搜尋簡報與逐頁講稿，掌握台灣 AIDC 的同業發展、供電條件與專案進度。")),
-    el("div", { class: "filters" },
+    el("div", { class: "page-heading" }, el("p", { class: "eyebrow" }, collection?.label ?? "台灣算力基礎設施"),
+      el("h1", { tabindex: "-1" }, collection?.title ?? "AIDC 資料館"),
+      el("p", { class: "intro" }, collection?.intro ??
+        "搜尋簡報與逐頁講稿，掌握台灣 AIDC 的政策、同業發展、供電條件與專案進度。")),
+    !collection ? el("div", { class: "collections" },
+      el("a", { class: "collection-link", href: "#policies" },
+        el("strong", {}, "6.X.2 政策法規"), el("span", {}, "選址、能效、BOO 申辦與租稅")),
+      el("a", { class: "collection-link", href: "#books" }, el("strong", {}, "書籍簡報"))) : null,
+    el("div", { class: collection ? "filters collection-filters" : "filters" },
       el("label", { for: "query" }, "關鍵字", search),
       el("label", { for: "audience" }, "閱讀對象", select("audience", state.audience, audiences, "所有對象", (v) => { state.audience = v; })),
-      el("label", { for: "kind" }, "資料類型", select("kind", state.kind, kindNames, "所有類型", (v) => { state.kind = v; }))
+      !collection ? el("label", { for: "kind" }, "資料類型", select("kind", state.kind, kindNames, "所有類型", (v) => { state.kind = v; })) : null
     ),
     count, catalog);
   refresh();
@@ -172,7 +189,8 @@ function deckPage(deck, page) {
     deck.slides.map((s, i) => el("option", { value: i + 1 }, `${i + 1}　${s.title}`)));
   jump.value = String(index + 1);
   screen.replaceChildren(
-    el("div", { class: "deck-head" }, el("a", { href: "#home" }, "返回資料館"), el("p", { class: "muted" }, deck.title)),
+    el("div", { class: "deck-head" }, el("a", { href: deck.kind === "policy" ? "#policies" : deck.kind === "book" ? "#books" : "#home" },
+      deck.kind === "policy" ? "返回政策法規" : deck.kind === "book" ? "返回書籍" : "返回資料館"), el("p", { class: "muted" }, deck.title)),
     el("article", { class: "slide" },
       el("p", { class: "eyebrow" }, `${slide.stage}　${cue(elapsed)}–${cue(elapsed + slide.seconds)}`),
       el("h1", { tabindex: "-1" }, slide.title), el("p", { class: "slide-lead" }, slide.lead),
@@ -287,7 +305,7 @@ async function render() {
         const { deck } = await call("deck", { id: match[1] });
         if (ticket !== navigation) return;
         deckPage(deck, Number(match[2]) || 1);
-      } else home();
+      } else home(Object.hasOwn(collections, path) ? collections[path] : undefined);
     }
     if (ticket === navigation) screen.querySelector("h1")?.focus();
   } catch (error) {
