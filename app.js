@@ -100,13 +100,15 @@ function home() {
   const catalog = el("div", { class: "cards", id: "results" });
   const count = el("p", { class: "muted result-count", role: "status" });
   const refresh = () => {
-    results = findDecks(state.decks, state.query, state.audience, state.kind);
+    const browsing = !state.query.trim() && !state.audience && !state.kind;
+    const ordered = [...state.decks].sort((a, b) => b.date.localeCompare(a.date));
+    results = findDecks(ordered, state.query, state.audience, state.kind);
     count.textContent = `找到 ${results.length} 套簡報`;
-    catalog.replaceChildren(...results.map(({ deck, matchPage }) => el("article", { class: "card" },
+    catalog.replaceChildren(...results.map(({ deck, matchPage }, index) => el("article", { class: browsing && index === 0 ? "card featured" : "card" },
       el("a", { href: route(deck.id, matchPage + 1 || 1), class: "card-link" },
         art(deck.cover),
         el("div", { class: "card-body" },
-          el("p", { class: "card-meta" }, `${kindNames[deck.kind] || deck.kind}　${deck.date}`),
+          el("p", { class: "card-meta" }, `${browsing && index === 0 ? "最新上架　" : ""}${kindNames[deck.kind] || deck.kind}　${deck.date}`),
           el("h3", {}, deck.title), el("p", {}, deck.summary),
           el("span", { class: "card-action" }, matchPage >= 0 ? `開啟第 ${matchPage + 1} 頁 · ${deck.slides[matchPage].title}` : "閱讀 10 分鐘簡報")
         )
@@ -124,8 +126,8 @@ function home() {
     return node;
   };
   screen.replaceChildren(
-    el("div", { class: "page-heading" }, el("p", { class: "eyebrow" }, "台灣市場趨勢"), el("h1", { tabindex: "-1" }, "AIDC 資料館"),
-      el("p", { class: "intro" }, "搜尋各篇簡報的結論、數據、證據與講稿。依閱讀對象或資料類型縮小範圍。")),
+    el("div", { class: "page-heading" }, el("p", { class: "eyebrow" }, "市場與專案研究"), el("h1", { tabindex: "-1" }, "AIDC 資料館"),
+      el("p", { class: "intro" }, "搜尋簡報與逐頁講稿，掌握台灣 AIDC 的同業發展、供電條件與專案進度。")),
     el("div", { class: "filters" },
       el("label", { for: "query" }, "關鍵字", search),
       el("label", { for: "audience" }, "閱讀對象", select("audience", state.audience, audiences, "所有對象", (v) => { state.audience = v; })),

@@ -8,8 +8,8 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://cowljafosekwvxithwjd.supabase.co; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>AIDC 知識庫</title>
   <link rel="icon" type="image/svg+xml" href="./assets/mark.svg">
-  <link rel="stylesheet" href="./style.css?v=2">
-  <script type="module" src="./app.js?v=3"></script>
+  <link rel="stylesheet" href="./style.css?v=3">
+  <script type="module" src="./app.js?v=4"></script>
 </head>
 <body>
   <a class="skip" href="#main">跳到主要內容</a>
@@ -23,24 +23,26 @@
       </nav>
     </div>
   </header>
-  <main id="main" class="bound" tabindex="-1">
+  <main id="main" tabindex="-1">
     <section id="gate" class="gate">
-      <div>
-        <p class="eyebrow">AI 資料中心研究資料館</p>
-        <h1>台灣 AIDC<br>市場與專案研究</h1>
-        <p class="intro">以十分鐘簡報閱讀同業布局、場址與供電條件，以及專案開發和投資風險。</p>
-        <form id="login">
-          <label for="access-key">存取金鑰</label>
-          <div class="login-row">
-            <input id="access-key" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required maxlength="69" placeholder="輸入管理員提供的金鑰">
-            <button class="button primary" type="submit">登入</button>
-          </div>
-          <p id="login-message" class="message" role="status">金鑰自簽發起有效 60 天。</p>
-        </form>
+      <div class="bound gate-inner">
+        <div class="gate-copy">
+          <p class="eyebrow">AIDC 產業研究</p>
+          <h1>台灣 AIDC<br>市場與專案研究</h1>
+          <p class="intro">以十分鐘讀懂同業布局、場址與供電條件、專案開發及投資風險。</p>
+          <form id="login">
+            <label for="access-key">存取金鑰</label>
+            <div class="login-row">
+              <input id="access-key" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" required maxlength="69" placeholder="輸入管理員提供的金鑰">
+              <button class="button primary" type="submit">登入</button>
+            </div>
+            <p id="login-message" class="message" role="status">金鑰自簽發起有效 60 天。</p>
+          </form>
+        </div>
+        <img class="gate-art" src="./assets/gate.svg?v=2" alt="" width="640" height="520">
       </div>
-      <img class="gate-art" src="./assets/gate.svg" alt="" width="640" height="520">
     </section>
-    <section id="screen" hidden></section>
+    <section id="screen" class="bound" hidden></section>
   </main>
   <footer class="bound footer">AIDC 知識庫</footer>
   <noscript><p>請開啟 JavaScript 以登入並閱讀簡報。</p></noscript>
