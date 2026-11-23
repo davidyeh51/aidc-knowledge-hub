@@ -56,6 +56,9 @@ input::placeholder { color:#597268 }
 .slide h1 { font-size:clamp(1.8rem,3.9vw,3.3rem); max-width:980px }
 .slide-lead { margin:17px 0 21px; max-width:920px; font-size:1.16rem; color:var(--muted) }
 .deck-cover { float:right; width:min(42%,500px); height:auto; margin:0 0 14px 24px; border-radius:8px }
+.evidence-figure { max-width:740px; margin:0 0 20px }
+.evidence-figure img { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:8px }
+.evidence-figure figcaption { margin-top:7px; color:var(--muted); font-size:.94rem }
 .points { margin:0; display:block }
 .points div { border-top:1px solid var(--line); padding:13px 0 }
 .points dt { font-weight:800; color:var(--accent) }

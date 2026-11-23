@@ -146,6 +146,13 @@ function sourceLinks(deck, refs) {
   }));
 }
 
+function evidenceFigure(figure) {
+  if (!figure || typeof figure.svg !== "string" || !figure.svg.startsWith("<svg ")) return null;
+  return el("figure", { class: "evidence-figure" },
+    el("img", { src: `data:image/svg+xml;charset=utf-8,${encodeURIComponent(figure.svg)}`, alt: figure.alt }),
+    el("figcaption", {}, figure.caption));
+}
+
 function deckPage(deck, page) {
   const index = Math.max(0, Math.min(deck.slides.length - 1, page - 1));
   const slide = deck.slides[index];
@@ -168,6 +175,7 @@ function deckPage(deck, page) {
       el("p", { class: "eyebrow" }, `${slide.stage}　${cue(elapsed)}–${cue(elapsed + slide.seconds)}`),
       el("h1", { tabindex: "-1" }, slide.title), el("p", { class: "slide-lead" }, slide.lead),
       index === 0 ? art(deck.cover, "deck-cover") : null,
+      evidenceFigure(slide.figure),
       el("dl", { class: "points" }, slide.points.map(([name, description]) =>
         el("div", {}, el("dt", {}, name), el("dd", {}, description)))),
       el("div", { class: "slide-foot" }, el("span", {}, `${index + 1} / ${deck.slides.length}`),
