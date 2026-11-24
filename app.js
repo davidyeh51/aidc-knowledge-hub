@@ -1,6 +1,10 @@
-import { audiences, findDecks } from "./search.js?v=3";
+import { audiences as libraryAudiences, findDecks } from "./search.js?v=3";
 
-const api = "https://cowljafosekwvxithwjd.supabase.co/functions/v1/aidc-knowledge-hub";
+const policyMeetings = document.body.hasAttribute("data-policy-meetings");
+const audiences = policyMeetings ? { personal: "自己", team: "團隊成員" } : libraryAudiences;
+const assets = policyMeetings ? "../assets/" : "./assets/";
+const api = "https://cowljafosekwvxithwjd.supabase.co/functions/v1/" +
+  (policyMeetings ? "aidc-policy-meetings" : "aidc-knowledge-hub");
 const gate = document.querySelector("#gate");
 const screen = document.querySelector("#screen");
 const nav = document.querySelector("#nav");
@@ -29,9 +33,9 @@ const kindNames = { policy: "政策法規", article: "產業剪藏", book: "書�
 const route = (id, page = 1) => `#deck/${id}/${page}`;
 function art(name, cls = "") {
   const slug = typeof name === "string" && /^[a-z0-9-]{1,64}$/.test(name) ? name : "book";
-  const picture = el("img", { class: cls, src: `./assets/${slug}.svg`, alt: "", width: 640, height: 360 });
+  const picture = el("img", { class: cls, src: `${assets}${slug}.svg`, alt: "", width: 640, height: 360 });
   if (slug !== "book") {
-    picture.addEventListener("error", () => { picture.src = "./assets/book.svg"; }, { once: true });
+    picture.addEventListener("error", () => { picture.src = `${assets}book.svg`; }, { once: true });
   }
   return picture;
 }
@@ -104,7 +108,35 @@ const collections = {
     intro: "已收錄的書籍簡報可依書名、作者或主題搜尋，並在各頁回查出處。" },
 };
 
+function meetingHome() {
+  const catalog = el("div", { class: "meeting-list" });
+  const count = el("p", { class: "result-count muted", role: "status" });
+  const ordered = [...state.decks].sort((a, b) => b.date.localeCompare(a.date));
+  const search = el("input", { type: "search", id: "meeting-query", maxlength: 120,
+    placeholder: "例如 促參法、共址、供電、投資抵減", value: state.query,
+    oninput: (event) => { state.query = event.target.value; refresh(); } });
+  function refresh() {
+    const matches = findDecks(ordered, state.query);
+    count.textContent = `顯示 ${matches.length} 場會議，共收錄 ${ordered.length} 場`;
+    catalog.replaceChildren(...matches.map(({ deck, matchPage }) =>
+      el("article", { class: "card" }, el("a", { class: "card-link", href: route(deck.id, Math.max(1, matchPage + 1)) },
+        art(deck.cover), el("div", { class: "card-body" },
+          el("p", { class: "card-meta" }, el("time", { datetime: deck.date }, deck.date), "　10 分鐘"),
+          el("h2", {}, deck.title), el("p", {}, deck.summary),
+          el("span", { class: "card-action" }, matchPage < 0 ? "開啟簡報" : `第 ${matchPage + 1} 頁　${deck.slides[matchPage].title}`)))));
+    if (!matches.length) catalog.append(el("p", { class: "empty" }, "找不到符合的會議。請試試其他關鍵字。"));
+  }
+  screen.replaceChildren(
+    el("div", { class: "page-heading" }, el("p", { class: "eyebrow" }, "內部會議資料"),
+      el("h1", { tabindex: "-1" }, "政策法規會議簡報"),
+      el("p", { class: "intro" }, "按日期回顧會議。搜尋摘要、簡報內容或講稿，直接開啟最符合的頁次。")),
+    el("div", { class: "filters meeting-search" }, el("label", { for: "meeting-query" }, "搜尋會議", search)),
+    count, catalog);
+  refresh();
+}
+
 function home(collection) {
+  if (policyMeetings) { meetingHome(); return; }
   let results;
   const catalog = el("div", { class: "register", id: "results" });
   const count = el("p", { class: "muted result-count", role: "status" });
@@ -157,6 +189,7 @@ function sourceLinks(deck, refs) {
   return el("ul", { class: "sources" }, refs.map((index) => {
     const source = deck.sources[index];
     if (!source) return null;
+    if (!source.url && policyMeetings) return el("li", {}, source.label, source.date ? `（${source.date}）` : "");
     let link;
     try { link = new URL(source.url); } catch { return null; }
     if (link.protocol !== "https:") return null;
@@ -220,7 +253,7 @@ async function keysPage(ticket) {
   const feedback = el("p", { class: "message", role: "status" });
   const receipt = el("div", { class: "receipt", hidden: true });
   const list = el("div", { class: "key-list" });
-  const label = el("input", { id: "key-label", maxlength: 80, required: true, placeholder: "例如 投資評估小組" });
+  const label = el("input", { id: "key-label", maxlength: 80, required: true, placeholder: policyMeetings ? "例如 專案團隊成員" : "例如 投資評估小組" });
   const audience = el("select", { id: "key-audience" }, Object.entries(audiences).map(([value, text]) => el("option", { value }, text)));
   const role = el("select", { id: "key-role" }, el("option", { value: "reader" }, "閱讀者"), el("option", { value: "admin" }, "管理員"));
   function listKeys(items) {
