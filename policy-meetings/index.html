@@ -3,50 +3,26 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="robots" content="noindex,nofollow">
-  <meta name="referrer" content="no-referrer">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src https://cowljafosekwvxithwjd.supabase.co; base-uri 'none'; form-action 'none'; object-src 'none'">
+  <meta name="description" content="台灣 AIDC 政策法規會議的十分鐘簡報、講稿與法規來源。">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
   <title>AIDC 政策法規</title>
   <link rel="icon" href="../assets/mark.svg">
   <link rel="stylesheet" href="../style.css?v=4">
-  <link rel="stylesheet" href="./meetings.css?v=1">
-  <script type="module" src="../app.js?v=9"></script>
+  <link rel="stylesheet" href="./meetings.css?v=2">
+  <script type="module" src="./meetings.js?v=1"></script>
 </head>
-<body data-policy-meetings>
+<body>
   <a class="skip" href="#main">跳到主要內容</a>
   <header class="bar">
     <div class="bound bar-inner">
       <a class="brand" href="#home"><img src="../assets/mark.svg" alt="" width="36" height="36">AIDC 政策法規</a>
-      <nav id="nav" aria-label="網站功能" hidden>
-        <a href="#home">會議資料館</a>
-        <a id="admin-nav" href="#keys" hidden>金鑰管理</a>
-        <button class="button quiet" id="logout" type="button">登出</button>
-      </nav>
+      <nav aria-label="網站功能"><a href="#home">會議資料館</a></nav>
     </div>
   </header>
-  <div class="access-bar"><div class="bound">自己與團隊成員專用 <span id="validity">金鑰有效期 60 天</span></div></div>
-  <main id="main" tabindex="-1">
-    <section id="gate" class="gate">
-      <div class="bound gate-inner">
-        <div class="gate-copy">
-          <p class="eyebrow">會議資料館</p>
-          <h1>台灣 AIDC<br>政策法規平台</h1>
-          <p class="intro">依會議日期查閱十分鐘簡報，從供電與選址到促參申辦，快速回到討論依據。</p>
-          <form id="login">
-            <label for="access-key">存取金鑰</label>
-            <div class="login-row">
-              <input id="access-key" type="password" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="70" required placeholder="輸入平台專用金鑰">
-              <button class="button primary" type="submit">登入</button>
-            </div>
-            <p id="login-message" class="message" role="status">金鑰自簽發起有效 60 天。</p>
-          </form>
-        </div>
-        <img class="gate-art" src="../assets/meeting-gate.svg" alt="" width="640" height="400">
-      </div>
-    </section>
-    <section id="screen" class="bound" hidden></section>
+  <main id="main" class="bound" tabindex="-1">
+    <section id="screen" aria-label="政策法規會議簡報"><p class="empty" role="status">載入會議簡報中</p></section>
   </main>
   <footer class="bound footer">AIDC 政策法規</footer>
-  <noscript><p>請開啟 JavaScript 以登入並閱讀會議簡報。</p></noscript>
+  <noscript><p>請開啟 JavaScript 以搜尋及閱讀會議簡報。</p></noscript>
 </body>
 </html>
