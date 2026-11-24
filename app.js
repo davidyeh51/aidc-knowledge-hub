@@ -118,12 +118,17 @@ function meetingHome() {
   function refresh() {
     const matches = findDecks(ordered, state.query);
     count.textContent = `顯示 ${matches.length} 場會議，共收錄 ${ordered.length} 場`;
-    catalog.replaceChildren(...matches.map(({ deck, matchPage }) =>
-      el("article", { class: "card" }, el("a", { class: "card-link", href: route(deck.id, Math.max(1, matchPage + 1)) },
-        art(deck.cover), el("div", { class: "card-body" },
-          el("p", { class: "card-meta" }, el("time", { datetime: deck.date }, deck.date), "　10 分鐘"),
-          el("h2", {}, deck.title), el("p", {}, deck.summary),
-          el("span", { class: "card-action" }, matchPage < 0 ? "開啟簡報" : `第 ${matchPage + 1} 頁　${deck.slides[matchPage].title}`)))));
+    const cards = matches.map(({ deck, matchPage }) => {
+      const page = Math.max(1, matchPage + 1);
+      const action = matchPage < 0 ? "開啟簡報" : `第 ${page} 頁　${deck.slides[matchPage].title}`;
+      const description = el("div", { class: "card-body" },
+        el("p", { class: "card-meta" }, el("time", { datetime: deck.date }, deck.date), "　10 分鐘"),
+        el("h2", {}, deck.title), el("p", {}, deck.summary),
+        el("span", { class: "card-action" }, action));
+      return el("article", { class: "card" },
+        el("a", { class: "card-link", href: route(deck.id, page) }, art(deck.cover), description));
+    });
+    catalog.replaceChildren(...cards);
     if (!matches.length) catalog.append(el("p", { class: "empty" }, "找不到符合的會議。請試試其他關鍵字。"));
   }
   screen.replaceChildren(
