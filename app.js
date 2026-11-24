@@ -52,6 +52,7 @@ function clearSession(message = "金鑰自簽發起有效 60 天。") {
   screen.replaceChildren();
   screen.hidden = true;
   nav.hidden = true;
+  document.querySelector("#validity").textContent = "存取金鑰有效期：60 天";
   gate.hidden = false;
   loginInput.value = "";
   loginMessage.textContent = message;
@@ -70,6 +71,7 @@ loginForm.addEventListener("submit", async (event) => {
     loginInput.value = "";
     gate.hidden = true;
     nav.hidden = false;
+    document.querySelector("#validity").textContent = "金鑰到期（台北）：" + dateTime(member.expires_at);
     screen.hidden = false;
     document.querySelector("#admin-nav").hidden = member.role !== "admin";
     render();
@@ -104,24 +106,20 @@ const collections = {
 
 function home(collection) {
   let results;
-  const catalog = el("div", { class: "cards", id: "results" });
+  const catalog = el("div", { class: "register", id: "results" });
   const count = el("p", { class: "muted result-count", role: "status" });
   const refresh = () => {
     const kind = collection?.kind ?? state.kind;
-    const browsing = !state.query.trim() && !state.audience && !kind;
     const ordered = [...state.decks].sort((a, b) => b.date.localeCompare(a.date));
     results = findDecks(ordered, state.query, state.audience, kind);
     count.textContent = `找到 ${results.length} 套簡報`;
-    catalog.replaceChildren(...results.map(({ deck, matchPage }, index) => el("article", { class: browsing && index === 0 ? "card featured" : "card" },
-      el("a", { href: route(deck.id, matchPage + 1 || 1), class: "card-link" },
-        art(deck.cover),
-        el("div", { class: "card-body" },
-          el("p", { class: "card-meta" }, `${kindNames[deck.kind] || deck.kind}　${deck.date}`),
-          el("h3", {}, deck.title), el("p", {}, deck.summary),
-          el("span", { class: "card-action" }, matchPage >= 0 ? `開啟第 ${matchPage + 1} 頁 · ${deck.slides[matchPage].title}` : "閱讀 10 分鐘簡報")
-        )
-      )
-    )));
+    catalog.replaceChildren();
+    if (results.length) catalog.append(el("table", {"aria-label":"簡報清單"},
+      el("thead", {}, el("tr", {}, ["簡報主題", "類型", "資料日期", "頁數"].map(t => el("th", {scope:"col"}, t)))),
+      el("tbody", {}, results.map(({deck, matchPage}) => el("tr", {},
+        el("td", {}, el("a", {href:route(deck.id, matchPage + 1 || 1)}, deck.title),
+          el("small", {}, matchPage >= 0 ? `第 ${matchPage+1} 頁 · ${deck.slides[matchPage].title}` : deck.summary)),
+        el("td", {}, kindNames[deck.kind] || deck.kind), el("td", {}, deck.date), el("td", {}, deck.slides.length))))));
     if (!results.length) catalog.append(el("div", { class: "empty" },
       kind === "book" && !state.decks.some((deck) => deck.kind === "book")
         ? el("div", { class: "book-empty" }, art("book-collection"), el("p", {}, "目前尚未收錄書籍。"))
@@ -141,10 +139,11 @@ function home(collection) {
       el("h1", { tabindex: "-1" }, collection?.title ?? "AIDC 資料館"),
       el("p", { class: "intro" }, collection?.intro ??
         "搜尋簡報與逐頁講稿，掌握台灣 AIDC 的政策、同業發展、供電條件與專案進度。")),
-    !collection ? el("div", { class: "collections" },
-      el("a", { class: "collection-link", href: "#policies" },
-        el("strong", {}, "6.X.2 政策法規"), el("span", {}, "選址、能效、BOO 申辦與租稅")),
-      el("a", { class: "collection-link", href: "#books" }, el("strong", {}, "書籍簡報"))) : null,
+    !collection ? el("div", {class:"metrics"}, [
+      [state.decks.length,"收錄簡報（套）"], [state.decks.reduce((sum,d)=>sum+d.slides.length,0),"簡報總頁數"],
+      [state.decks.filter(d=>d.kind==="policy").length,"政策法規（套）"], [state.decks.filter(d=>d.kind==="book").length,"書籍簡報（套）"]
+    ].map(([n,label])=>el("div",{},el("strong",{},n),el("span",{},label)))) : null,
+    el("h2", {class:"list-heading"}, "簡報清單"),
     el("div", { class: collection ? "filters collection-filters" : "filters" },
       el("label", { for: "query" }, "關鍵字", search),
       el("label", { for: "audience" }, "閱讀對象", select("audience", state.audience, audiences, "所有對象", (v) => { state.audience = v; })),
@@ -293,6 +292,10 @@ async function render() {
   const ticket = ++navigation;
   const currentKey = state.key;
   const path = location.hash.slice(1);
+  for (const a of nav.querySelectorAll("a")) {
+    if (a.hash === "#" + (path.startsWith("deck/") || !path ? "home" : path)) a.setAttribute("aria-current","page");
+    else a.removeAttribute("aria-current");
+  }
   try {
     if (path === "keys") {
       if (state.member.role !== "admin") { showError("此頁僅限管理員。"); return; }
